@@ -75,26 +75,16 @@ def update(racquet,screen,testmode)
     $x+=$dx
     $y+=$dy
 
-    #if screen[$y.floor][$x.floor] == SC_BLANK
-        if screen[$y.floor][$x.floor] == SC_H
-            if $y.floor != 0 #ball doesn't miss miss if hits the ceiling
-                for i in 1..RACQUET_SIZE do
-                   if $x.floor != (racquet-2)+i #If it's not going to hit any of the racquet positions..
-                       return nil 
-                       #if it's a horizonal wall, not at the top and not on the raquet, return nil
-                   end
-               end 
-           end
-           $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
-        elsif screen[$y.floor][$x.floor] == SC_V
-           $dx = -$dx #If about to hit a vertical wall, reverse direction of horizontal motion 
+    if screen[$y.floor][$x.floor] == SC_H #if hitting a horizontal wall 
+        if $y.floor == SCREEN_Y-1 #If ball is hitting the floor
+            if $x.floor != racquet-1 and $x.floor != racquet and $x.floor != racquet+1 and $x.floor != racquet+2
+                return nil #if it's a horizonal wall, not at the top and not on the raquet, return nil 
+            end
         end
-    #end
-    
-    
-    #if y > SCREEN_Y
-     #  return nil #Return nill if the ball is below the bottom of the screen
-    #end
+       $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
+    elsif screen[$y.floor][$x.floor] == SC_V
+       $dx = -$dx #If about to hit a vertical wall, reverse direction of horizontal motion 
+    end
     
     print "no_wall" if testmode
     return x==$x.floor && y == $y.floor	#Will return false if ball hasn't visibly moved
@@ -102,10 +92,15 @@ end
 
 def displayDyn(screen,racquet)
     
-   for i in 1..RACQUET_SIZE do
-       print "\e[#{SCREEN_Y};#{(racquet-2)+i}H="
+   for x in 2 ..SCREEN_X-1 do 
+       print "\e[#{SCREEN_Y};#{x}H-"
+       #Go through the bottom row and replace character with the horizontal wall
+   end
+    
+   for x in 1..RACQUET_SIZE do
+       print "\e[#{SCREEN_Y};#{(racquet-2)+x}H="
    end 
-   #Writes the racquet to the screen as the "=" character
+   #Writes the racquet to the screen as the "=" character over the wall character
 
   # clears the old position of the ball, using the value in the screen array
   # and plots the current position.
@@ -135,12 +130,20 @@ end
 
 # you need to write the code to update the position of the racquet when a user presses cursor left
 def racquetLeft(racquet)
-	racquet
+    if racquet - 2 != 1
+       return racquet - 1 
+    else
+        return racquet
+    end
 end
 
 # you need to write the code to update the position of the racquet when a user presses cursor right
 def racquetRight(racquet)
-	racquet
+	if racquet + 2 != SCREEN_X-1
+       return racquet + 1 
+    else 
+        return racquet
+    end
 end
   
 # Reports that the game is over
@@ -156,37 +159,35 @@ def mainloop(screen)
 	startKbd
 
 	# initial racquet position in the middle
-	racquet=SCREEN_X/2
+	racquet=SCREEN_X/2.floor
 	# displayes the ball and racquet
-  displayDyn(screen,racquet)
+    displayDyn(screen,racquet)
     
 	loop do
-    # updates the position of the ball
-    u=update(racquet,screen,false)
-    if u == nil
-      # missed the racquet, game over
-      displayEndgame
-      break
-    elsif !u
-      # display needs to be updated
-      displayDyn(screen,racquet)
-    end
-
-    ch = readChar
-    if ch == 'q' || ch == "\003" 
-      # character 'q' or Ctrl-C means 'quit the game'
-      displayEndgame
-      break
-    elsif ch != nil
-      if ch == LEFT 
-        racquet = racquetLeft(racquet)
-      elsif ch == RIGHT
-        racquet = racquetRight(racquet)
-      end
-
-    end
+        # updates the position of the ball
+        u=update(racquet,screen,false)
+        if u == nil
+          # missed the racquet, game over
+          displayEndgame
+          break
+        elsif !u
+          # display needs to be updated
+          displayDyn(screen,racquet)
+        end
+        ch = readChar
+        if ch == 'q' || ch == "\003" 
+          # character 'q' or Ctrl-C means 'quit the game'
+          displayEndgame
+          break
+        elsif ch != nil
+          if ch == LEFT 
+            racquet = racquetLeft(racquet)
+          elsif ch == RIGHT
+            racquet = racquetRight(racquet)
+          end
+        end
     # 100ms per cycle
-    sleep(0.005)	
+    sleep(0.1)	
     end
     ensure
 		# ensures that when application stops, the keyboard is in a usable state
