@@ -79,6 +79,15 @@ def update(racquet,screen,testmode)
         if $y.floor == SCREEN_Y-1 #If ball is hitting the floor
             if $x.floor != racquet-1 and $x.floor != racquet and $x.floor != racquet+1 and $x.floor != racquet+2
                 return nil #if it's a horizonal wall, not at the top and not on the raquet, return nil 
+            elsif (racquet - $x).abs > 1 #If the ball hits the racquet off centre
+                oldSpeed = Math.sqrt(($dx*$dx)+($dy*$dy))
+                $dx = rand(-0.9..0.9)
+                if $dx.abs > oldSpeed #If the new value of $dx is too large to maintain constant speed
+                   $dx = $dy #choose $dy so that the ball does not speed up too much
+                else
+                    $dy = Math.sqrt((oldSpeed*oldSpeed) - ($dx*$dx))
+                    #Set $dy to such a value that speed will remain constant
+                end
             end
         end
        $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
@@ -130,8 +139,8 @@ end
 
 # you need to write the code to update the position of the racquet when a user presses cursor left
 def racquetLeft(racquet)
-    if racquet - 2 != 1
-       return racquet - 1 
+    if racquet - 2 != 1 #If the leftermost part of the racket isn't in the left wall
+       return racquet - 1 #return the current position but 1 to the left 
     else
         return racquet
     end
@@ -139,8 +148,8 @@ end
 
 # you need to write the code to update the position of the racquet when a user presses cursor right
 def racquetRight(racquet)
-	if racquet + 2 != SCREEN_X-1
-       return racquet + 1 
+	if racquet + 2 != SCREEN_X-1 #If the rightermost part of the racket isn't in the right wall
+       return racquet + 1 #return the current position but 1 to the right
     else 
         return racquet
     end
