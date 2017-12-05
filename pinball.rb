@@ -102,8 +102,22 @@ end
 # of the screen array including walls at the top, bottom, sides 
 # as well as the walls in the middle.
 def displayBoundaries(screen)
-  # this clears the screen and sets the cursor to the top-left corner
   puts "\e[2J\e[#{1};#{1}H"
+    # this clears the screen and sets the cursor to the top-left corner
+    
+    for y in 1..SCREEN_Y do
+        print "|"
+        for x in 1..SCREEN_X do 
+            if y == 1 or y == SCREEN_Y
+                print "-"
+            else 
+                print " "
+            end
+        end
+        puts "|"
+    end
+    #outputs the vertical and horizontal boundaries to the screen
+  
 end
 
 # you need to write the code to update the position of the racquet when a user presses cursor left
