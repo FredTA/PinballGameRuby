@@ -105,18 +105,13 @@ def displayBoundaries(screen)
   puts "\e[2J\e[#{1};#{1}H"
     # this clears the screen and sets the cursor to the top-left corner
     
-    for y in 1..SCREEN_Y do
-        print "|"
-        for x in 1..SCREEN_X do 
-            if y == 1 or y == SCREEN_Y
-                print "-"
-            else 
-                print " "
-            end
-        end
-        puts "|"
-    end
-    #outputs the vertical and horizontal boundaries to the screen
+    (0...SCREEN_Y).each do |row|
+		(0...SCREEN_X).each do |column| 
+		    print screen[row][column] 
+		end
+        puts ""
+	end
+    #Goes through the array and outputs each element to the screen as a char
   
 end
 
