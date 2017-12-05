@@ -69,21 +69,43 @@ end
 # testmode is true if this routine is run in a test mode where it is supposed
 # to report the decisions it has made.
 def update(racquet,screen,testmode)
+    
     x=$x.floor
     y=$y.floor
     $x+=$dx
     $y+=$dy
+
+    #if screen[$y.floor][$x.floor] == SC_BLANK
+        if screen[$y.floor][$x.floor] == SC_H
+            if $y.floor != 0 #ball doesn't miss miss if hits the ceiling
+                for i in 1..RACQUET_SIZE do
+                   if $x.floor != (racquet-2)+i #If it's not going to hit any of the racquet positions..
+                       return nil 
+                       #if it's a horizonal wall, not at the top and not on the raquet, return nil
+                   end
+               end 
+           end
+           $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
+        elsif screen[$y.floor][$x.floor] == SC_V
+           $dx = -$dx #If about to hit a vertical wall, reverse direction of horizontal motion 
+        end
+    #end
+    
+    
+    #if y > SCREEN_Y
+     #  return nil #Return nill if the ball is below the bottom of the screen
+    #end
+    
     print "no_wall" if testmode
-    return x==$x.floor && y == $y.floor	
+    return x==$x.floor && y == $y.floor	#Will return false if ball hasn't visibly moved
 end
 
-# You are expected to write this to display the racquet
-# It already contains a routine to display the ball.
-# The idea is that displaying an expression 
-# "\e[#{Y};#{X}H"
-# can be used to place a cursor in position with coordinates X,Y 
-# on the screen (starting from 1,1 for the top-left corner).
 def displayDyn(screen,racquet)
+    
+   for i in 1..RACQUET_SIZE do
+       print "\e[#{SCREEN_Y};#{(racquet-2)+i}H="
+   end 
+   #Writes the racquet to the screen as the "=" character
 
   # clears the old position of the ball, using the value in the screen array
   # and plots the current position.
@@ -98,21 +120,17 @@ def displayDyn(screen,racquet)
   end
 end
 
-# You need to write the routine that will display the contents
-# of the screen array including walls at the top, bottom, sides 
-# as well as the walls in the middle.
 def displayBoundaries(screen)
-  puts "\e[2J\e[#{1};#{1}H"
+  print "\e[2J\e[#{0};#{0}H" #must be print not puts
     # this clears the screen and sets the cursor to the top-left corner
     
-    (0...SCREEN_Y).each do |row|
-		(0...SCREEN_X).each do |column| 
-		    print screen[row][column] 
+    for x in 0...SCREEN_Y do 
+		for y in 0...SCREEN_X do  
+		    print screen[x][y] 
 		end
         puts ""
 	end
     #Goes through the array and outputs each element to the screen as a char
-  
 end
 
 # you need to write the code to update the position of the racquet when a user presses cursor left
@@ -168,7 +186,7 @@ def mainloop(screen)
 
     end
     # 100ms per cycle
-    sleep(0.1)	
+    sleep(0.005)	
     end
     ensure
 		# ensures that when application stops, the keyboard is in a usable state
