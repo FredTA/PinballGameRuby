@@ -1,4 +1,5 @@
 # Assignment: small pinball game
+# ACA17FT, Fred Tovey-Ansell
 
 require 'io/console'
 
@@ -31,6 +32,9 @@ $dx=0.1
 # positive means moving down.
 $dy=0.2
 
+$originalSpeed = Math.sqrt(($dx*$dx)+($dy*$dy))
+$originaldy=0.2
+
 # used to configure keyboard for input without having to press Enter
 def startKbd
 	$stdin.echo=false
@@ -54,33 +58,25 @@ def readChar
 	return  input
 end
 
-# You are expected to modify this function to support bouncing of the ball
-# on the walls and the racquet.
-# Update is expected to return Nil if the ball misses a racquet.
-# Otherwise, true is returned if the screen should not be updated (ball in the 
-# same visible position) and false if the screen should be updated.
-# The visible position is determined by the truncation of the floating-point values
-# of the ball coordinates $x and $y, via $x.floor and $y.floor.
-# You can use screen[$y.floor][$x.floor] to determine the cell that a ball 
-# is going to hit. If it if SC_BLANK, it contains empty space.
-# For SC_V it means a vertical wall.
-# For SC_H,it is a horizonal wall.
-# racquet is the horizonal coordinate of the centre of the racquet.
-# testmode is true if this routine is run in a test mode where it is supposed
-# to report the decisions it has made.
 def update(racquet,screen,testmode, ballTracker, totalVisits)
-    
     
     if screen[$y.floor][$x.floor] == SC_H #if hitting a horizontal wall 
         if $y.floor == SCREEN_Y-1 #If ball is hitting the floor
             if $x.floor != racquet-2 and $x.floor != racquet-1 and $x.floor != racquet and $x.floor != racquet+1
                 return nil #if it's a horizonal wall, not at the top and not on the raquet, return nil 
             elsif (racquet - $x).abs > 1 #If the ball hits the racquet off centre
-                oldSpeed = Math.sqrt(($dx*$dx)+($dy*$dy))
                 $dx = rand(-0.9..0.9)
-                $dy = Math.sqrt(((oldSpeed*oldSpeed) - ($dx*$dx)).abs)
+                $dy = Math.sqrt((($originalSpeed*$originalSpeed) - ($dx*$dx)).abs)
                 #Set $dy to such a value that speed will remain constant, unless a value of large magnitude..
                 #..was chosen for x in which case there will be some difference in the new speed
+                newSpeed = Math.sqrt(($dx*$dx)+($dy*$dy))
+
+                if newSpeed > $originalSpeed * 1.75 or $originalSpeed > newSpeed * 1.75
+                    #If the new magnigitude of $dx is too large to maintain a relavily constant speed
+                    #choose $dy so that the ball does not speed up too much
+                    $dx = $originaldy
+                    $dy = $originaldy
+                end
             end
         end
        $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
