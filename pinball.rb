@@ -68,16 +68,12 @@ end
 # racquet is the horizonal coordinate of the centre of the racquet.
 # testmode is true if this routine is run in a test mode where it is supposed
 # to report the decisions it has made.
-def update(racquet,screen,testmode)
+def update(racquet,screen,testmode, ballTracker, totalVisits)
     
-    x=$x.floor
-    y=$y.floor
-    $x+=$dx
-    $y+=$dy
-
+    
     if screen[$y.floor][$x.floor] == SC_H #if hitting a horizontal wall 
         if $y.floor == SCREEN_Y-1 #If ball is hitting the floor
-            if $x.floor != racquet-1 and $x.floor != racquet and $x.floor != racquet+1 and $x.floor != racquet+2
+            if $x.floor != racquet-2 and $x.floor != racquet-1 and $x.floor != racquet and $x.floor != racquet+1
                 return nil #if it's a horizonal wall, not at the top and not on the raquet, return nil 
             elsif (racquet - $x).abs > 1 #If the ball hits the racquet off centre
                 oldSpeed = Math.sqrt(($dx*$dx)+($dy*$dy))
@@ -93,6 +89,22 @@ def update(racquet,screen,testmode)
        $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
     elsif screen[$y.floor][$x.floor] == SC_V
        $dx = -$dx #If about to hit a vertical wall, reverse direction of horizontal motion 
+    end
+    
+    x=$x.floor
+    y=$y.floor
+    $x+=$dx
+    $y+=$dy
+    
+    if screen[$y.floor][$x.floor] == SC_BLANK
+        if $oldx.floor != $x.floor or $oldy.floor != $y.floor
+            ballTracker[$y.floor][$x.floor] += 1
+            totalVisits += 1
+            if ballTracker[$y.floor][$x.floor] >= 3 && ballTracker[$y.floor][$x.floor] > totalVisits * 0.02
+                #Cells visited more than 3 times and more than 2% of the total number of visits of all cells 
+                screen[$y.floor][$x.floor] = SC_STAR #should be painted with a star
+            end
+        end
     end
     
     print "no_wall" if testmode
@@ -161,7 +173,7 @@ def displayEndgame
 end
 
 # This is a routine to run the game
-def mainloop(screen)
+def mainloop(screen, ballTracker)
 	# draws the screen
 	displayBoundaries(screen)
 	# configures keyboard
@@ -172,9 +184,11 @@ def mainloop(screen)
 	# displayes the ball and racquet
     displayDyn(screen,racquet)
     
+    totalVisits = 0;
+    
 	loop do
         # updates the position of the ball
-        u=update(racquet,screen,false)
+        u=update(racquet,screen,false, ballTracker, totalVisits)
         if u == nil
           # missed the racquet, game over
           displayEndgame
@@ -196,13 +210,14 @@ def mainloop(screen)
           end
         end
     # 100ms per cycle
-    sleep(0.1)	
+    sleep(0.03)	
     end
     ensure
 		# ensures that when application stops, the keyboard is in a usable state
 		endKbd
 end
 
+#OPTIONAL "TEST" CODE NOT USED
 # You can use this routine for testing of collisions: running 
 # the ball and watching it go through the walls is not fun.
 # For testing, add "puts" statements to the 'update' routine above
@@ -228,7 +243,7 @@ def tryupdate(x,y,screen)
 	update(SCREEN_X/2,screen,true)
   puts
 end
-
+#OPTIONAL "TEST" CODE NOT USED
 # this routine is the test routine - you can add tryupdate calls to it
 # to check that you correctly detect when the ball should reflect from 
 # a racquet and when it will miss it.
@@ -242,6 +257,9 @@ end
 begin
 	#creating the boundaries
 	screen = Array.new(SCREEN_Y) { Array.new(SCREEN_X, SC_BLANK)}
+    
+    #A 2D array to keep track of where the ball has been
+    ballTracker = Array.new(SCREEN_Y) { Array.new(SCREEN_X, 0)}
 
 	(0...SCREEN_Y).each do |row|
 		(0...SCREEN_X).each do |column| 
@@ -264,7 +282,7 @@ begin
 	end
 
 	# this runs the main loop for the game
-	mainloop(screen)
+	mainloop(screen, ballTracker)
 
 	# if you comment out the above main loop and instead uncomment trytest, 
 	#it will run your test routines.
