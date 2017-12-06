@@ -78,12 +78,9 @@ def update(racquet,screen,testmode, ballTracker, totalVisits)
             elsif (racquet - $x).abs > 1 #If the ball hits the racquet off centre
                 oldSpeed = Math.sqrt(($dx*$dx)+($dy*$dy))
                 $dx = rand(-0.9..0.9)
-                if $dx.abs > oldSpeed #If the new value of $dx is too large to maintain constant speed
-                   $dx = $dy #choose $dy so that the ball does not speed up too much
-                else
-                    $dy = Math.sqrt((oldSpeed*oldSpeed) - ($dx*$dx))
-                    #Set $dy to such a value that speed will remain constant
-                end
+                $dy = Math.sqrt(((oldSpeed*oldSpeed) - ($dx*$dx)).abs)
+                #Set $dy to such a value that speed will remain constant, unless a value of large magnitude..
+                #..was chosen for x in which case there will be some difference in the new speed
             end
         end
        $dy = -$dy #If about to hit a horizontal wall, reverse direction of vertical motion 
@@ -210,7 +207,7 @@ def mainloop(screen, ballTracker)
           end
         end
     # 100ms per cycle
-    sleep(0.03)	
+    sleep(0.1)	
     end
     ensure
 		# ensures that when application stops, the keyboard is in a usable state
@@ -218,35 +215,14 @@ def mainloop(screen, ballTracker)
 end
 
 #OPTIONAL "TEST" CODE NOT USED
-# You can use this routine for testing of collisions: running 
-# the ball and watching it go through the walls is not fun.
-# For testing, add "puts" statements to the 'update' routine above
-# such that if the value of testmode is true, it will display
-# decisions it is making. For example, to report bouncing from a vertical wall 
-# you can write the following line:
-# puts "LR" if testmode
-# to mean that line "LR" will be displayed if testmode is true.
-# In this case, you can try calling tryupdate(0,SCREEN_Y/2,screen)
-# to see if it will display the correct response.
-#
-# What your code should display: 
-# "LR" for a ball hitting a vertical wall
-# "UD" for a ball hitting a horizontal wall
-# "no_wall" for a ball not hitting anything
-# "racquet_miss" for a ball missing a racquet
-# "racquet_hit" for a ball reflecting from a raquet
-# "racquet_hit RND" to indicate that a ball reflected from a peripheral part of the 
-# racquet.
 def tryupdate(x,y,screen)
 	$x=x;$y=y
 	print "#{x},#{y} : "
 	update(SCREEN_X/2,screen,true)
   puts
 end
+    
 #OPTIONAL "TEST" CODE NOT USED
-# this routine is the test routine - you can add tryupdate calls to it
-# to check that you correctly detect when the ball should reflect from 
-# a racquet and when it will miss it.
 def trytest(screen)
 	$dx=0;$dy=0
 	tryupdate(0.5,SCREEN_Y/2,screen)
